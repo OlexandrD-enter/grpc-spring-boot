@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+package com.example.proto;
+
+message Category {
+  int32 id = 1;
+  string name = 2;
+}
+
+message Product {
+  int32 id = 1;
+  string title = 2;
+  float price = 3;
+  int32 category_id = 5;
+}
