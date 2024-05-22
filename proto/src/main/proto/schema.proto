@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 option java_multiple_files = true;
 
 package com.example.proto;
@@ -16,7 +18,19 @@ message Product {
   int32 category_id = 5;
 }
 
+message CategoryByIdRequest {
+  int64 id = 1;
+}
+
+message CategoryUpdateRequest {
+  int64 id = 1;
+  string name = 2;
+}
 
 service CategoryService {
   rpc createCategory(Category) returns(Category){}
+  rpc getCategory(CategoryByIdRequest) returns(Category){}
+  rpc updateCategory(CategoryUpdateRequest) returns(Category){}
+  rpc deleteCategory(CategoryByIdRequest) returns(google.protobuf.Empty){}
+  rpc getCategories(google.protobuf.Empty) returns(stream Category){}
 }
