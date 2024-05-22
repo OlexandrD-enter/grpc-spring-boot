@@ -19,87 +19,56 @@ public class CategoryService extends CategoryServiceGrpc.CategoryServiceImplBase
   public void createCategory(Category request, StreamObserver<Category> responseObserver) {
     List<Category> categories = TempDB.getCategoriesFromTempDb();
 
-    boolean idExists = categories.stream()
-        .anyMatch(category -> category.getId() == request.getId());
-    if (idExists) {
-      responseObserver.onError(
-          Status.ALREADY_EXISTS.withDescription(
-                  "Category with ID " + request.getId() + " already exists").asRuntimeException());
+    if (categoryExistsById(request.getId())) {
+      handleError(responseObserver, Status.ALREADY_EXISTS,
+          "Category with ID " + request.getId() + " already exists");
       return;
     }
 
-    boolean nameExists = categories.stream()
-        .anyMatch(category -> category.getName().equals(request.getName()));
-    if (nameExists) {
-      responseObserver.onError(
-          Status.ALREADY_EXISTS.withDescription(
-                  "Category with name '" + request.getName() + "' already exists").asRuntimeException());
+    if (categoryExistsByName(request.getName())) {
+      handleError(responseObserver, Status.ALREADY_EXISTS,
+          "Category with name '" + request.getName() + "' already exists");
       return;
     }
 
     categories.add(Category.newBuilder().setId(request.getId()).setName(request.getName()).build());
-
     responseObserver.onNext(request);
     responseObserver.onCompleted();
   }
 
-
   @Override
   public void getCategory(CategoryByIdRequest request, StreamObserver<Category> responseObserver) {
-    Optional<Category> categoryOptional = findCategoryById(request.getId());
-    if (categoryOptional.isPresent()) {
-      responseObserver.onNext(categoryOptional.get());
-      responseObserver.onCompleted();
-    } else {
-      responseObserver.onError(
-          Status.NOT_FOUND.withDescription("Category with id = " + request.getId() + " not found")
-              .asRuntimeException());
-    }
+    findCategoryById(request.getId()).ifPresentOrElse(
+        responseObserver::onNext,
+        () -> handleError(responseObserver, Status.NOT_FOUND,
+            "Category with id = " + request.getId() + " not found"));
   }
 
   @Override
-  public void updateCategory(CategoryUpdateRequest request,
-      StreamObserver<Category> responseObserver) {
-    Optional<Category> categoryOptional = findCategoryById(request.getId());
-    if (categoryOptional.isPresent()) {
-      Category oldCategory = categoryOptional.get();
-
-      Category updatedCategory = Category.newBuilder(oldCategory)
-          .setName(request.getName())
-          .build();
-
-      List<Category> categories = TempDB.getCategoriesFromTempDb();
-      for (int i = 0; i < categories.size(); i++) {
-        if (categories.get(i).getId() == request.getId()) {
-          categories.set(i, updatedCategory);
-          break;
-        }
-      }
-
-      responseObserver.onNext(updatedCategory);
-      responseObserver.onCompleted();
-    } else {
-      responseObserver.onError(
-          Status.NOT_FOUND.withDescription("Category with id = " + request.getId() + " not found")
-              .asRuntimeException());
-    }
+  public void updateCategory(CategoryUpdateRequest request, StreamObserver<Category> responseObserver) {
+    findCategoryById(request.getId()).ifPresentOrElse(
+        oldCategory -> {
+          Category updatedCategory = Category.newBuilder(oldCategory)
+              .setName(request.getName())
+              .build();
+          replaceCategory(updatedCategory);
+          responseObserver.onNext(updatedCategory);
+          responseObserver.onCompleted();
+        },
+        () -> handleError(responseObserver, Status.NOT_FOUND,
+            "Category with id = " + request.getId() + " not found"));
   }
 
   @Override
   public void deleteCategory(CategoryByIdRequest request, StreamObserver<Empty> responseObserver) {
-    Optional<Category> categoryOptional = findCategoryById(request.getId());
-
-    if (categoryOptional.isPresent()) {
-      Category category = categoryOptional.get();
-      TempDB.getCategoriesFromTempDb().remove(category);
-
-      responseObserver.onNext(Empty.newBuilder().build());
-      responseObserver.onCompleted();
-    } else {
-      responseObserver.onError(
-          Status.NOT_FOUND.withDescription("Category with id = " + request.getId() + " not found")
-              .asRuntimeException());
-    }
+    findCategoryById(request.getId()).ifPresentOrElse(
+        category -> {
+          TempDB.getCategoriesFromTempDb().remove(category);
+          responseObserver.onNext(Empty.newBuilder().build());
+          responseObserver.onCompleted();
+        },
+        () -> handleError(responseObserver, Status.NOT_FOUND,
+            "Category with id = " + request.getId() + " not found"));
   }
 
   @Override
@@ -113,4 +82,27 @@ public class CategoryService extends CategoryServiceGrpc.CategoryServiceImplBase
         .filter(category -> id == category.getId())
         .findFirst();
   }
+
+  private boolean categoryExistsById(long id) {
+    return TempDB.getCategoriesFromTempDb().stream().anyMatch(category -> category.getId() == id);
+  }
+
+  private boolean categoryExistsByName(String name) {
+    return TempDB.getCategoriesFromTempDb().stream().anyMatch(category -> category.getName().equals(name));
+  }
+
+  private void replaceCategory(Category updatedCategory) {
+    List<Category> categories = TempDB.getCategoriesFromTempDb();
+    for (int i = 0; i < categories.size(); i++) {
+      if (categories.get(i).getId() == updatedCategory.getId()) {
+        categories.set(i, updatedCategory);
+        break;
+      }
+    }
+  }
+
+  private void handleError(StreamObserver<?> responseObserver, Status status, String description) {
+    responseObserver.onError(status.withDescription(description).asRuntimeException());
+  }
 }
+
