@@ -11,7 +11,6 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Empty;
 import io.grpc.StatusRuntimeException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -81,11 +80,9 @@ public class CategoryService {
   public List<Map<FieldDescriptor, Object>> getCategories() {
     List<Map<FieldDescriptor, Object>> categoriesList = new ArrayList<>();
     try {
-      Iterator<Category> categories = synchronousClient.getCategories(Empty.newBuilder().build());
 
-      while (categories.hasNext()) {
-        categoriesList.add(categories.next().getAllFields());
-      }
+      synchronousClient.getCategories(Empty.newBuilder().build())
+          .forEachRemaining(category -> categoriesList.add(category.getAllFields()));
 
       return categoriesList;
     } catch (StatusRuntimeException ex) {
