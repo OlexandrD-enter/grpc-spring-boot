@@ -44,8 +44,8 @@
 1. Clone this repository to your local machine:
 
     ```bash
-    git clone link
-    cd grpc
+    git clone https://github.com/OlexandrD-enter/grpc-spring-boot.git
+    cd grpc-spring-boot
     ```  
 2. Build the project
     ```bash         
