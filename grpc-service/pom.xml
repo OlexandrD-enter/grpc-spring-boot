@@ -16,6 +16,7 @@
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <grpc.starter.version>3.1.0.RELEASE</grpc.starter.version>
+    <grpc-testing.version>1.64.0</grpc-testing.version>
   </properties>
 
   <dependencies>
@@ -37,7 +38,7 @@
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-testing</artifactId>
-      <version>1.64.0</version>
+      <version>${grpc-testing.version}</version>
       <scope>test</scope>
     </dependency>
 

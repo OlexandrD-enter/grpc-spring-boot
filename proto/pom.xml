@@ -15,28 +15,32 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <grpc.version>1.41.0</grpc.version>
+    <annotations.api.version>6.0.53</annotations.api.version>
+    <os-maven-plugin.version>1.6.1</os-maven-plugin.version>
+    <protobuf.maven.plugin.version>0.6.1</protobuf.maven.plugin.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-netty-shaded</artifactId>
-      <version>1.41.0</version>
+      <version>${grpc.version}</version>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-protobuf</artifactId>
-      <version>1.41.0</version>
+      <version>${grpc.version}</version>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
-      <version>1.41.0</version>
+      <version>${grpc.version}</version>
     </dependency>
     <dependency> <!-- necessary for Java 9+ -->
       <groupId>org.apache.tomcat</groupId>
       <artifactId>annotations-api</artifactId>
-      <version>6.0.53</version>
+      <version>${annotations.api.version}</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -46,14 +50,14 @@
       <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>1.6.1</version>
+        <version>${os-maven-plugin.version}</version>
       </extension>
     </extensions>
     <plugins>
       <plugin>
         <groupId>org.xolstice.maven.plugins</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
-        <version>0.6.1</version>
+        <version>${protobuf.maven.plugin.version}</version>
         <configuration>
           <protocArtifact>
             com.google.protobuf:protoc:3.3.0:exe:${os.detected.classifier}
